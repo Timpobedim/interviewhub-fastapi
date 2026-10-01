@@ -1,0 +1,85 @@
+[project]
+name = "interviewhub"
+version = "1.0.0"
+description = "InterviewHub — API банка вопросов с технических собеседований (FastAPI + asyncpg + aiosql + PyPika)"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pydantic[email]>=2.8",
+    "pydantic-settings>=2.4",
+    "asyncpg>=0.30",
+    "aiosql>=13",
+    "pypika>=0.48.9",
+    "alembic>=1.13",
+    "psycopg2-binary>=2.9",
+    "pyjwt>=2.9",
+    "bcrypt>=4.2",
+    "python-slugify>=8.0",
+    "loguru>=0.7",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "pytest-cov>=5.0",
+    "pytest-env>=1.1",
+    "pytest-xdist>=3.6",
+    "httpx>=0.27",
+    "asgi-lifespan>=2.1",
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "asyncpg-stubs>=0.30",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["app/db/migrations/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "N", "S", "C4", "SIM", "RUF", "ASYNC", "PT"]
+# RUF001-003: русские строки и докстринги содержат кириллицу, похожую на латиницу — это нормально.
+ignore = ["RUF001", "RUF002", "RUF003", "B008"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106", "S107"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app", "tests"]
+
+[tool.mypy]
+python_version = "3.12"
+plugins = ["pydantic.mypy"]
+disallow_untyped_defs = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+no_implicit_optional = true
+ignore_missing_imports = true
+exclude = ["app/db/migrations/"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+filterwarnings = ["ignore::DeprecationWarning:pypika.*"]
+addopts = """
+  --strict-markers
+  --tb=short
+  --cov=app
+  --cov-branch
+  --cov-report=term-missing
+  --cov-fail-under=95
+"""
+# «D:» — значение по умолчанию: CI может переопределить переменные окружения.
+env = [
+    "D:APP_ENV=test",
+    "D:SECRET_KEY=test-secret-key-for-pytest-only",
+    "D:DATABASE_URL=postgresql://postgres:postgres@localhost:5432/interviewhub_test",
+]
+
+[tool.coverage.run]
+omit = ["app/db/migrations/*"]
